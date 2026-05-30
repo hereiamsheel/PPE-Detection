@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live PPE Detection</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+html,body{
+height:100%;
+margin:0;
+}
+
+body{
+font-family:Inter,sans-serif;
+color:white;
+background:radial-gradient(circle at top, #1f2937, #020617);
+overflow:hidden;
+}
+
+.glass{
+background:rgba(255,255,255,.05);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,.08);
+}
+
+.live-dot{
+width:8px;
+height:8px;
+border-radius:999px;
+background:#ef4444;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1);opacity:1;}
+100%{transform:scale(2);opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="h-screen flex flex-col">
+
+<!-- NAVBAR -->
+<nav class="flex justify-between items-center px-10 py-6">
+
+<h1 class="text-2xl font-bold">
+PPE <span class="text-blue-400">Vision</span>
+</h1>
+
+<div class="space-x-6">
+<a href="/" class="hover:text-blue-400">Home</a>
+<a href="/upload" class="hover:text-blue-400">Upload</a>
+<a href="/live" class="text-blue-400 font-semibold">Live</a>
+<a href="/analytics" class="hover:text-blue-400">Analytics</a>
+</div>
+
+</nav>
+
+
+<!-- PAGE TITLE -->
+<div class="px-10 pb-4 flex justify-between items-center">
+
+<div>
+<h1 class="text-4xl md:text-5xl font-bold">
+<span class="text-white">Live PPE</span>
+<span class="text-blue-400"> Detection</span>
+</h1>
+
+<p class="text-sm text-gray-400 mt-2">
+AI Safety Monitoring Dashboard
+</p>
+</div>
+
+<div id="statusBox"
+class="hidden items-center gap-2 px-4 py-2 rounded-full glass text-red-400 text-sm">
+
+<div class="live-dot"></div>
+LIVE
+
+</div>
+
+</div>
+
+
+
+<!-- MAIN -->
+<div class="flex-1 px-10 pb-6 grid lg:grid-cols-10 gap-5 min-h-0">
+
+<!-- LEFT PANEL -->
+<div class="lg:col-span-7 glass rounded-2xl p-5 flex flex-col">
+
+<div class="mb-4">
+<h2 class="text-lg font-semibold">
+Camera 01 • Main Gate
+</h2>
+
+<p class="text-sm text-gray-400">
+Real-time PPE compliance stream
+</p>
+</div>
+
+
+<!-- WEBCAM + CONTROLS -->
+<div class="flex justify-center gap-4">
+
+<!-- WEBCAM -->
+<div class="bg-black rounded-xl overflow-hidden w-[640px] h-[480px] border border-white/10 relative shadow-2xl">
+
+<img id="videoFeed"
+class="hidden w-full h-full object-cover">
+
+<div id="placeholder"
+class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+
+<div class="text-6xl mb-4">🛡️</div>
+
+<p class="text-white font-medium text-lg">
+Ready to Start Detection
+</p>
+
+<p class="text-sm text-gray-400 mt-1">
+Use side controls to begin monitoring
+</p>
+
+</div>
+
+<div class="absolute bottom-3 left-3 glass px-3 py-1 rounded-lg text-xs">
+CAM-01
+</div>
+
+</div>
+
+
+
+<!-- SIDE CONTROLS -->
+<div class="w-52 flex flex-col gap-3">
+
+<button onclick="startCamera()"
+class="py-3 rounded-xl bg-green-500 hover:bg-green-600 transition font-semibold">
+▶ Start Camera
+</button>
+
+<button onclick="stopCamera()"
+class="py-3 rounded-xl bg-red-500 hover:bg-red-600 transition font-semibold">
+⏹ Stop Camera
+</button>
+
+
+<div class="glass rounded-xl p-4">
+<p class="text-xs text-gray-400">Status</p>
+
+<h3 id="stateText"
+class="text-lg font-bold text-yellow-400 mt-1">
+Idle
+</h3>
+</div>
+
+
+<div class="glass rounded-xl p-4">
+<p class="text-xs text-gray-400">Session Time</p>
+
+<h3 id="timer"
+class="text-lg font-bold mt-1">
+00:00
+</h3>
+</div>
+
+
+<div class="glass rounded-xl p-4 text-sm space-y-2">
+
+<div class="flex justify-between">
+<span class="text-gray-400">Source</span>
+<span>Webcam</span>
+</div>
+
+<div class="flex justify-between">
+<span class="text-gray-400">Resolution</span>
+<span>640×480</span>
+</div>
+
+<div class="flex justify-between">
+<span class="text-gray-400">Mode</span>
+<span class="text-green-400">Live AI</span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- RIGHT PANEL -->
+<div class="lg:col-span-3 flex flex-col gap-4">
+
+<!-- DETECTIONS -->
+<div class="glass rounded-2xl p-4">
+
+<p class="text-xs text-gray-400">
+Detections Today
+</p>
+
+<div class="mt-4 space-y-3 text-sm">
+
+<div class="flex justify-between">
+<span>Helmet</span>
+<span id="helmetCount" class="text-green-400">24</span>
+</div>
+
+<div class="flex justify-between">
+<span>Vest Missing</span>
+<span id="vestCount" class="text-red-400">3</span>
+</div>
+
+<div class="flex justify-between">
+<span>Workers</span>
+<span id="workerCount" class="text-blue-400">18</span>
+</div>
+
+<div class="flex justify-between">
+<span>Compliance</span>
+<span id="scoreCount" class="text-cyan-400">94%</span>
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- QUICK ACCESS -->
+<a href="/analytics"
+class="glass rounded-2xl p-4 hover:text-blue-400 transition">
+View Analytics →
+</a>
+
+<a href="/upload"
+class="glass rounded-2xl p-4 hover:text-blue-400 transition">
+Upload New Media →
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<script>
+let running=false;
+let seconds=0;
+let timerInterval=null;
+
+function formatTime(sec){
+let m=Math.floor(sec/60);
+let s=sec%60;
+return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+}
+
+function startTimer(){
+timerInterval=setInterval(()=>{
+seconds++;
+document.getElementById("timer").innerText=formatTime(seconds);
+},1000);
+}
+
+function stopTimer(){
+clearInterval(timerInterval);
+}
+
+function startCamera(){
+
+if(running) return;
+
+fetch('/start_camera')
+.then(()=>{
+
+running=true;
+
+document.getElementById("videoFeed").src="/video_feed";
+document.getElementById("videoFeed").classList.remove("hidden");
+
+document.getElementById("placeholder").classList.add("hidden");
+
+document.getElementById("statusBox").classList.remove("hidden");
+document.getElementById("statusBox").classList.add("flex");
+
+document.getElementById("stateText").innerText="Running";
+document.getElementById("stateText").className=
+"text-lg font-bold text-green-400 mt-1";
+
+seconds=0;
+document.getElementById("timer").innerText="00:00";
+
+startTimer();
+
+});
+
+}
+
+function stopCamera(){
+
+if(!running) return;
+
+fetch('/stop_camera')
+.then(()=>{
+
+running=false;
+
+document.getElementById("videoFeed").src="";
+document.getElementById("videoFeed").classList.add("hidden");
+
+document.getElementById("placeholder").classList.remove("hidden");
+
+document.getElementById("statusBox").classList.add("hidden");
+document.getElementById("statusBox").classList.remove("flex");
+
+document.getElementById("stateText").innerText="Stopped";
+document.getElementById("stateText").className=
+"text-lg font-bold text-red-400 mt-1";
+
+stopTimer();
+
+});
+
+}
+
+
+/* Demo Stats Animation */
+setInterval(()=>{
+
+document.getElementById("helmetCount").innerText =
+20 + Math.floor(Math.random()*20);
+
+document.getElementById("vestCount").innerText =
+Math.floor(Math.random()*6);
+
+document.getElementById("workerCount").innerText =
+10 + Math.floor(Math.random()*15);
+
+document.getElementById("scoreCount").innerText =
+90 + Math.floor(Math.random()*9) + "%";
+
+},2500);
+
+</script>
+
+</body>
+</html>

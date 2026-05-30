@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PPE Vision Analytics</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  background: radial-gradient(circle at top, #1f2937, #020617);
+}
+.glass{
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,0.1);
+}
+canvas{
+  max-height:320px;
+}
+</style>
+</head>
+
+<body class="text-white">
+
+<!-- NAVBAR -->
+<nav class="flex justify-between items-center px-8 md:px-14 py-6">
+
+    <h1 class="text-2xl font-bold">
+        PPE <span class="text-blue-400">Vision</span>
+    </h1>
+
+    <div class="space-x-6 hidden md:block">
+        <a href="/" class="hover:text-blue-400 transition">Home</a>
+        <a href="/upload" class="hover:text-blue-400 transition">Upload</a>
+        <a href="/live" class="hover:text-blue-400 transition">Live</a>
+        <a href="/analytics" class="text-blue-400 font-semibold">Analytics</a>
+    </div>
+
+</nav>
+
+<!-- MAIN -->
+<div class="p-8">
+
+<!-- TITLE -->
+<div class="mb-8 flex justify-between items-center">
+
+    <div>
+        <h2 class="text-4xl font-bold">
+            <span class="text-white">Analytics</span>
+            <span class="text-blue-400"> Dashboard</span>
+        </h2>
+
+        <p class="text-gray-400 mt-2">
+            Real-time PPE compliance insights and reports
+        </p>
+    </div>
+
+    <button onclick="window.print()"
+        class="bg-green-500 px-5 py-3 rounded-xl hover:bg-green-600 transition font-semibold">
+        Download Report PDF
+    </button>
+
+</div>
+
+<!-- DATA -->
+<script id="stats-data" type="application/json">
+{{ stats | tojson }}
+</script>
+
+<script>
+const raw = document.getElementById("stats-data").textContent;
+const data = JSON.parse(raw || "{}");
+
+let total = Object.values(data).reduce((a,b)=>a+b,0);
+
+let violations = 0;
+Object.keys(data).forEach(k=>{
+  if(k.includes("NO")) violations += data[k];
+});
+
+let compliance = total > 0
+ ? ((total - violations)/total*100).toFixed(1)
+ : 0;
+</script>
+
+<!-- KPI -->
+<div class="grid grid-cols-4 gap-6 mb-8">
+
+<div class="glass p-6 rounded-xl text-center">
+  <h3>Total</h3>
+  <p id="total" class="text-3xl mt-2 font-bold text-cyan-400"></p>
+</div>
+
+<div class="glass p-6 rounded-xl text-center">
+  <h3>Violations</h3>
+  <p id="violations" class="text-3xl mt-2 font-bold text-red-400"></p>
+</div>
+
+<div class="glass p-6 rounded-xl text-center">
+  <h3>Compliance</h3>
+  <p id="compliance" class="text-3xl mt-2 font-bold text-green-400"></p>
+</div>
+
+<div class="glass p-6 rounded-xl text-center">
+  <h3>Score</h3>
+  <p id="score" class="text-3xl mt-2 font-bold text-yellow-400"></p>
+</div>
+
+</div>
+
+<!-- OUTPUT + PIE -->
+<div class="grid grid-cols-3 gap-6 mb-8">
+
+<!-- OUTPUT -->
+<div class="col-span-2 glass p-6 rounded-xl">
+
+<h3 class="text-xl mb-4">Latest Detection Output</h3>
+
+<div class="h-[420px] flex items-center justify-center">
+
+{% if output %}
+
+{% if output.endswith('.jpg') or output.endswith('.png') %}
+<img
+src="{{ url_for('static', filename='outputs/' + output) }}"
+class="rounded-xl max-h-full object-contain"
+>
+
+{% elif output.endswith('.mp4') %}
+<video controls autoplay class="rounded-xl max-h-full">
+<source src="{{ url_for('static', filename='outputs/' + output) }}">
+</video>
+{% endif %}
+
+{% else %}
+<p class="text-gray-400">No output available</p>
+{% endif %}
+
+</div>
+
+</div>
+
+<!-- PIE -->
+<div class="glass p-6 rounded-xl">
+
+<h3 class="text-xl mb-4">Compliance Ratio</h3>
+
+<div class="h-[420px]">
+<canvas id="pieChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<!-- BAR + CONTROL -->
+<div class="grid grid-cols-3 gap-6">
+
+<!-- BAR -->
+<div class="col-span-2 glass p-6 rounded-xl">
+
+<div class="flex justify-between items-center mb-4">
+  <h3 class="text-xl font-semibold">Detection Overview</h3>
+  <span class="text-sm text-gray-300">Live Summary</span>
+</div>
+
+<div class="h-[360px]">
+<canvas id="barChart"></canvas>
+</div>
+
+</div>
+
+<!-- CONTROL -->
+<div class="glass p-5 rounded-xl">
+
+<div class="flex justify-between items-center mb-4">
+  <h3 class="text-lg font-semibold">Compliance Control</h3>
+  <span class="text-xs text-gray-300">Quality Monitor</span>
+</div>
+
+<div class="h-[360px]">
+<canvas id="controlChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+document.getElementById("total").innerText = total;
+document.getElementById("violations").innerText = violations;
+document.getElementById("compliance").innerText = compliance + "%";
+document.getElementById("score").innerText = Math.round(compliance) + "/100";
+
+Chart.defaults.color = "white";
+
+/* PIE CHART */
+new Chart(document.getElementById("pieChart"), {
+type:"doughnut",
+data:{
+labels:["Compliant","Violations"],
+datasets:[{
+data:[total - violations, violations],
+backgroundColor:["#22c55e","#ef4444"]
+}]
+},
+options:{
+cutout:"70%",
+plugins:{
+legend:{position:"bottom"}
+}
+}
+});
+
+/* BAR CHART */
+new Chart(document.getElementById("barChart"), {
+type:"bar",
+data:{
+labels:Object.keys(data),
+datasets:[{
+label:"Detections",
+data:Object.values(data),
+backgroundColor:[
+"#3b82f6",
+"#ef4444",
+"#22c55e",
+"#f59e0b",
+"#8b5cf6",
+"#06b6d4"
+]
+}]
+},
+options:{
+indexAxis:"y",
+plugins:{
+legend:{display:false}
+},
+responsive:true,
+maintainAspectRatio:false
+}
+});
+
+/* CONTROL CHART */
+new Chart(document.getElementById("controlChart"), {
+type:"line",
+data:{
+labels:["Start","Current","Target"],
+datasets:[
+{
+label:"Compliance %",
+data:[0, parseFloat(compliance), 100],
+borderColor:"#22c55e",
+backgroundColor:"#22c55e",
+pointRadius:5,
+pointHoverRadius:7,
+tension:0.4
+},
+{
+label:"Violations %",
+data:[100, 100-parseFloat(compliance), 0],
+borderColor:"#ef4444",
+backgroundColor:"#ef4444",
+pointRadius:5,
+pointHoverRadius:7,
+tension:0.4
+}
+]
+},
+options:{
+responsive:true,
+maintainAspectRatio:false,
+plugins:{
+legend:{
+labels:{color:"white"}
+}
+},
+scales:{
+x:{
+ticks:{color:"white"},
+grid:{color:"rgba(255,255,255,0.08)"}
+},
+y:{
+beginAtZero:true,
+max:100,
+ticks:{
+color:"white",
+callback:(value)=> value + "%"
+},
+grid:{color:"rgba(255,255,255,0.08)"}
+}
+}
+}
+});
+
+</script>
+
+</body>
+</html>

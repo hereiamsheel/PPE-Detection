@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload File</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+    background: radial-gradient(circle at top,#1e293b,#020617);
+    min-height:100vh;
+}
+
+.glass{
+    background: rgba(255,255,255,.06);
+    backdrop-filter: blur(14px);
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.drop-zone{
+    border:2px dashed rgba(255,255,255,.2);
+    transition:.3s;
+}
+
+.drop-zone:hover,
+.drop-zone.active{
+    border-color:#3b82f6;
+    background:rgba(59,130,246,.08);
+}
+
+.spinner{
+    width:52px;
+    height:52px;
+    border:4px solid rgba(255,255,255,.1);
+    border-top:4px solid #3b82f6;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    100%{transform:rotate(360deg);}
+}
+
+.fade{
+    animation:fade .35s ease;
+}
+
+@keyframes fade{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+}
+</style>
+</head>
+
+<body class="text-white flex items-center justify-center px-4">
+
+<div class="w-full max-w-5xl grid md:grid-cols-2 gap-8">
+
+    <!-- LEFT -->
+    <div class="flex flex-col justify-center fade">
+
+        <h1 class="text-5xl font-bold leading-tight">
+            Upload Media for <br>
+            <span class="text-blue-400">PPE Detection</span>
+        </h1>
+
+        <p class="text-gray-400 mt-5 text-lg">
+            Upload image or video files and let AI analyze helmet,
+            vest and safety compliance instantly.
+        </p>
+
+        <div class="mt-8 space-y-4 text-gray-300">
+            <p>✔ Image & Video Support</p>
+            <p>✔ Fast AI Processing</p>
+            <p>✔ Analytics Dashboard</p>
+            <p>✔ Download Final Output</p>
+        </div>
+
+        <a href="/"
+           class="mt-8 inline-block w-fit glass px-5 py-3 rounded-xl hover:bg-white/10 transition">
+           ← Back Home
+        </a>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="glass p-8 rounded-3xl fade">
+
+        <h2 class="text-3xl font-bold mb-2">Upload File</h2>
+        <p class="text-gray-400 mb-6">Choose an image or video to process.</p>
+
+        <form id="uploadForm" method="POST" enctype="multipart/form-data">
+
+            <!-- Hidden Input -->
+            <input type="file" name="file" id="fileInput" required class="hidden">
+
+            <!-- Drop Area -->
+            <div id="dropZone"
+                 class="drop-zone rounded-2xl p-8 text-center cursor-pointer">
+
+                <div class="text-6xl mb-4">📤</div>
+
+                <p class="text-lg font-semibold">
+                    Drag & Drop File Here
+                </p>
+
+                <p class="text-gray-400 mt-2 text-sm">
+                    or click to browse
+                </p>
+
+            </div>
+
+            <!-- File Info -->
+            <div id="fileInfo"
+                 class="hidden mt-5 glass rounded-xl p-4 text-left">
+                <p class="text-sm text-gray-400">Selected File</p>
+                <h4 id="fileName" class="font-semibold mt-1"></h4>
+                <p id="fileSize" class="text-sm text-gray-400 mt-1"></p>
+            </div>
+
+            <!-- Button -->
+            <button id="submitBtn"
+                type="submit"
+                class="w-full mt-6 bg-blue-500 py-3 rounded-xl font-semibold hover:bg-blue-600 transition">
+                Process File
+            </button>
+
+        </form>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden text-center mt-8">
+
+            <div class="spinner mx-auto"></div>
+
+            <p class="mt-4 text-lg font-semibold">
+                Running PPE Detection...
+            </p>
+
+            <p class="text-gray-400 text-sm">
+                Please wait while AI processes your file
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const fileInfo = document.getElementById("fileInfo");
+const fileName = document.getElementById("fileName");
+const fileSize = document.getElementById("fileSize");
+
+dropZone.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", () => {
+    showFile(fileInput.files[0]);
+});
+
+dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("active");
+});
+
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("active");
+});
+
+dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("active");
+
+    fileInput.files = e.dataTransfer.files;
+    showFile(e.dataTransfer.files[0]);
+});
+
+function showFile(file){
+    if(!file) return;
+
+    fileInfo.classList.remove("hidden");
+    fileName.innerText = file.name;
+
+    let size = (file.size / 1024 / 1024).toFixed(2);
+    fileSize.innerText = size + " MB";
+}
+
+document.getElementById("uploadForm").addEventListener("submit", function(){
+
+    document.getElementById("loader").classList.remove("hidden");
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").innerText = "Processing...";
+
+});
+</script>
+
+</body>
+</html>

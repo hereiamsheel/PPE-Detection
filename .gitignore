@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.env
+
+# Model Files
+model/*.pt
+*.pt
+
+# Generated Outputs
+static/outputs/
+test-script/
+# Uploaded Files
+uploads/
+
+# VS Code
+.vscode/
