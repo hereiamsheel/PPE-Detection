@@ -65,7 +65,6 @@ PPE-Detection/
 - Cloud deployment
 - Mobile application support
 - Attendance integration
-
----
+  
 ## Author
 PPE Vision demonstrates the practical use of Computer Vision to improve workplace safety through automated PPE compliance monitoring and analytics.
